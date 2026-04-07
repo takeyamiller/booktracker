@@ -41,9 +41,9 @@ jobs:
 
       - name: Deploy frontend
         run: |
-          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p ~/booktracker-frontend"
-          scp -r frontend/dist/. ubuntu@${{ secrets.LIGHTSAIL_IP }}:~/booktracker-frontend/
-          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "sudo mkdir -p /var/www/booktracker && sudo rm -rf /var/www/booktracker/* && sudo cp -r ~/booktracker-frontend/. /var/www/booktracker/"
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p /home/ubuntu/booktracker-frontend"
+          scp -r frontend/dist/. ubuntu@${{ secrets.LIGHTSAIL_IP }}:/home/ubuntu/booktracker-frontend/
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "sudo mkdir -p /var/www/booktracker && sudo rm -rf /var/www/booktracker/* && sudo cp -r /home/ubuntu/booktracker-frontend/. /var/www/booktracker/"
 
       - name: Build backend binary
         run: |
@@ -52,8 +52,8 @@ jobs:
 
       - name: Deploy backend
         run: |
-          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p ~/booktracker-backend"
-          scp backend/server-linux ubuntu@${{ secrets.LIGHTSAIL_IP }}:~/booktracker-backend/server-linux
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p /home/ubuntu/booktracker-backend"
+          scp backend/server-linux ubuntu@${{ secrets.LIGHTSAIL_IP }}:/home/ubuntu/booktracker-backend/server-linux
           ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "
             sudo tee /etc/booktracker.env > /dev/null <<EOF
           ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
