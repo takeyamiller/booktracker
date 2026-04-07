@@ -18,6 +18,11 @@ jobs:
         with:
           node-version: '20'
 
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
       - name: Build frontend
         run: |
           cd frontend
@@ -40,23 +45,16 @@ jobs:
           scp -r frontend/dist/. ubuntu@${{ secrets.LIGHTSAIL_IP }}:~/booktracker-frontend/
           ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "sudo mkdir -p /var/www/booktracker && sudo rm -rf /var/www/booktracker/* && sudo cp -r ~/booktracker-frontend/. /var/www/booktracker/"
 
+      - name: Build backend binary
+        run: |
+          cd backend
+          GOOS=linux GOARCH=amd64 go build -o server-linux .
+
       - name: Deploy backend
         run: |
           ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p ~/booktracker-backend"
-          scp backend/main.go backend/go.mod backend/go.sum ubuntu@${{ secrets.LIGHTSAIL_IP }}:~/booktracker-backend/
-          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "
-            if ! command -v go &>/dev/null && [ ! -f /usr/local/go/bin/go ]; then
-              echo 'Installing Go...' &&
-              wget -q https://go.dev/dl/go1.22.5.linux-amd64.tar.gz -O /tmp/go.tar.gz &&
-              sudo rm -rf /usr/local/go &&
-              sudo tar -C /usr/local -xzf /tmp/go.tar.gz &&
-              rm /tmp/go.tar.gz
-            fi &&
-            export PATH=\$PATH:/usr/local/go/bin &&
-            cd ~/booktracker-backend &&
-            go build -o server-linux . &&
-            sudo systemctl restart booktracker
-          "
+          scp backend/server-linux ubuntu@${{ secrets.LIGHTSAIL_IP }}:~/booktracker-backend/server-linux
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "sudo systemctl restart booktracker"
 
       - name: Set backend environment variables
         run: |
