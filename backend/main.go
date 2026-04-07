@@ -75,8 +75,12 @@ func main() {
 	http.HandleFunc("/api/books", booksHandler)
 	http.HandleFunc("/api/books/", bookByIDHandler)
 
-	log.Println("Server starting on :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8081"
+	}
+	log.Println("Server starting on :" + port)
+	if err := http.ListenAndServe(":"+port, nil); err != nil {
 		log.Fatal(err)
 	}
 }
