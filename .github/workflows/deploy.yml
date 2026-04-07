@@ -1,0 +1,142 @@
+name: Deploy to Lightsail
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm install
+          npm run build
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.LIGHTSAIL_SSH_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          echo "Host *" > ~/.ssh/config
+          echo "  StrictHostKeyChecking no" >> ~/.ssh/config
+          echo "  UserKnownHostsFile=/dev/null" >> ~/.ssh/config
+          chmod 600 ~/.ssh/config
+
+      - name: Deploy frontend
+        run: |
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p ~/frontend-build"
+          scp -r frontend/dist/. ubuntu@${{ secrets.LIGHTSAIL_IP }}:~/frontend-build/
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "sudo rm -rf /var/www/booktracker/* && sudo cp -r ~/frontend-build/. /var/www/booktracker/"
+
+      - name: Deploy backend
+        run: |
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p ~/backend"
+          scp backend/main.go backend/go.mod backend/go.sum ubuntu@${{ secrets.LIGHTSAIL_IP }}:~/backend/
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "
+            if ! command -v go &>/dev/null && [ ! -f /usr/local/go/bin/go ]; then
+              echo 'Installing Go...' &&
+              wget -q https://go.dev/dl/go1.22.5.linux-amd64.tar.gz -O /tmp/go.tar.gz &&
+              sudo rm -rf /usr/local/go &&
+              sudo tar -C /usr/local -xzf /tmp/go.tar.gz &&
+              rm /tmp/go.tar.gz
+            fi &&
+            export PATH=\$PATH:/usr/local/go/bin &&
+            cd ~/backend &&
+            CGO_ENABLED=1 go build -o server-linux . &&
+            sudo systemctl restart backend
+          "
+
+      - name: Set backend environment variables
+        run: |
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "
+            sudo tee /etc/backend.env > /dev/null <<EOF
+          ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          DATABASE_PATH=/home/ubuntu/backend/booktracker.db
+          EOF
+            sudo chmod 600 /etc/backend.env
+            sudo systemctl restart backend
+            sleep 2
+            sudo systemctl is-active backend
+          "
+
+      - name: Write nginx config
+        run: |
+          cat > /tmp/booktracker.nginx << 'NGINXEOF'
+          server {
+              listen 80;
+              server_name books.takeyaproject.it.com;
+
+              location /api/ {
+                  proxy_pass http://localhost:8080/api/;
+                  proxy_http_version 1.1;
+                  proxy_set_header Host $host;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+
+              location /health {
+                  proxy_pass http://localhost:8080/health;
+              }
+
+              location / {
+                  root /var/www/booktracker;
+                  index index.html;
+                  try_files $uri $uri/ /index.html;
+              }
+          }
+          NGINXEOF
+          scp /tmp/booktracker.nginx ubuntu@${{ secrets.LIGHTSAIL_IP }}:/tmp/booktracker.nginx
+
+      - name: Configure nginx
+        run: |
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "
+            sudo cp /tmp/booktracker.nginx /etc/nginx/sites-available/booktracker &&
+            sudo ln -sf /etc/nginx/sites-available/booktracker /etc/nginx/sites-enabled/booktracker &&
+            sudo rm -f /etc/nginx/sites-enabled/default &&
+            sudo nginx -t &&
+            sudo systemctl reload nginx
+          "
+
+      - name: Enable HTTPS with Certbot
+        run: |
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "
+            if ! command -v certbot &>/dev/null; then
+              sudo apt-get update -qq &&
+              sudo apt-get install -y certbot python3-certbot-nginx
+            fi
+            if [ ! -d /etc/letsencrypt/live/books.takeyaproject.it.com ]; then
+              sudo certbot --nginx \
+                -d books.takeyaproject.it.com \
+                --non-interactive --agree-tos \
+                -m ${{ secrets.CERTBOT_EMAIL }} \
+                --redirect
+            else
+              sudo certbot renew --quiet
+            fi
+            sudo systemctl reload nginx
+          "
+
+      - name: Verify deployment
+        run: |
+          echo "Verifying https://books.takeyaproject.it.com ..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "https://books.takeyaproject.it.com/")
+          echo "  / → $STATUS"
+          [ "$STATUS" = "200" ] || (echo "Frontend check failed ($STATUS)" && exit 1)
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -L "https://books.takeyaproject.it.com/health")
+          echo "  /health → $STATUS"
+          [ "$STATUS" = "200" ] || (echo "Health check failed ($STATUS)" && exit 1)
+          echo "All checks passed."
