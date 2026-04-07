@@ -54,7 +54,7 @@ jobs:
             fi &&
             export PATH=\$PATH:/usr/local/go/bin &&
             cd ~/booktracker-backend &&
-            CGO_ENABLED=1 go build -o server-linux . &&
+            go build -o server-linux . &&
             sudo systemctl restart booktracker
           "
 

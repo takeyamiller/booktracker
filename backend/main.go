@@ -12,7 +12,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite"
 )
 
 var conn *sql.DB
@@ -37,7 +37,7 @@ func main() {
 	}
 
 	var err error
-	conn, err = sql.Open("sqlite3", dbPath)
+	conn, err = sql.Open("sqlite", dbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
