@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { Plus, Search, BookOpen, LogOut, AlertTriangle, Trash2 } from 'lucide-react'
 import { useBooks, useCreateBook, useUpdateBook, useDeleteBook } from '@/lib/queries'
 import { clearToken } from '@/lib/auth'
@@ -304,7 +304,9 @@ function BookCard({ book, onEdit, onDelete }) {
       )}
       <CardContent className="flex-1 flex flex-col pt-4 pb-4">
         <div className="flex items-start justify-between gap-2 mb-1">
-          <h3 className="font-semibold text-slate-900 leading-snug line-clamp-2">{book.title}</h3>
+          <Link to={`/books/${book.id}`} className="font-semibold text-slate-900 hover:text-indigo-600 leading-snug line-clamp-2 transition-colors">
+            {book.title}
+          </Link>
           <Badge variant={status.variant} className="shrink-0">{status.label}</Badge>
         </div>
         <p className="text-sm text-slate-500 mb-3">{book.author}</p>
