@@ -54,10 +54,6 @@ jobs:
         run: |
           ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p ~/booktracker-backend"
           scp backend/server-linux ubuntu@${{ secrets.LIGHTSAIL_IP }}:~/booktracker-backend/server-linux
-          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "sudo systemctl restart booktracker"
-
-      - name: Set backend environment variables
-        run: |
           ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "
             sudo tee /etc/booktracker.env > /dev/null <<EOF
           ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
@@ -67,7 +63,6 @@ jobs:
           EOF
             sudo chmod 600 /etc/booktracker.env
 
-            # Create systemd service if it doesn't exist
             if [ ! -f /etc/systemd/system/booktracker.service ]; then
               sudo tee /etc/systemd/system/booktracker.service > /dev/null <<'SVCEOF'
           [Unit]
