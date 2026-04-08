@@ -23,6 +23,11 @@ jobs:
         with:
           go-version: '1.22'
 
+      - name: Build backend binary
+        run: |
+          cd backend
+          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o server-linux .
+
       - name: Build frontend
         run: |
           cd frontend
@@ -41,51 +46,31 @@ jobs:
 
       - name: Deploy frontend
         run: |
-          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p /home/ubuntu/booktracker-frontend"
-          scp -r frontend/dist/. ubuntu@${{ secrets.LIGHTSAIL_IP }}:/home/ubuntu/booktracker-frontend/
-          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "sudo mkdir -p /var/www/booktracker && sudo rm -rf /var/www/booktracker/* && sudo cp -r /home/ubuntu/booktracker-frontend/. /var/www/booktracker/"
-
-      - name: Build backend binary
-        run: |
-          cd backend
-          GOOS=linux GOARCH=amd64 go build -o server-linux .
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p ~/frontend-build"
+          scp -r frontend/dist/. ubuntu@${{ secrets.LIGHTSAIL_IP }}:~/frontend-build/
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "sudo mkdir -p /var/www/booktracker && sudo rm -rf /var/www/booktracker/* && sudo cp -r ~/frontend-build/. /var/www/booktracker/"
 
       - name: Deploy backend
         run: |
-          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p /home/ubuntu/booktracker-backend"
-          scp backend/server-linux ubuntu@${{ secrets.LIGHTSAIL_IP }}:/home/ubuntu/booktracker-backend/server-linux
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p ~/backend"
+          scp backend/server-linux ubuntu@${{ secrets.LIGHTSAIL_IP }}:~/backend/server-linux
           ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "
-            sudo tee /etc/booktracker.env > /dev/null <<EOF
+            chmod +x ~/backend/server-linux &&
+            sudo systemctl restart backend
+          "
+
+      - name: Set backend environment variables
+        run: |
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "
+            sudo tee /etc/backend.env > /dev/null <<EOF
           ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
-          DATABASE_PATH=/home/ubuntu/booktracker-backend/booktracker.db
-          PORT=8081
+          DATABASE_PATH=/home/ubuntu/backend/booktracker.db
           EOF
-            sudo chmod 600 /etc/booktracker.env
-
-            if [ ! -f /etc/systemd/system/booktracker.service ]; then
-              sudo tee /etc/systemd/system/booktracker.service > /dev/null <<'SVCEOF'
-          [Unit]
-          Description=Book Tracker Backend
-          After=network.target
-
-          [Service]
-          ExecStart=/home/ubuntu/booktracker-backend/server-linux
-          WorkingDirectory=/home/ubuntu/booktracker-backend
-          Restart=always
-          User=ubuntu
-          EnvironmentFile=/etc/booktracker.env
-
-          [Install]
-          WantedBy=multi-user.target
-          SVCEOF
-              sudo systemctl daemon-reload
-              sudo systemctl enable booktracker
-            fi
-
-            sudo systemctl restart booktracker
+            sudo chmod 600 /etc/backend.env
+            sudo systemctl restart backend
             sleep 2
-            sudo systemctl is-active booktracker
+            sudo systemctl is-active backend
           "
 
       - name: Write nginx config
@@ -96,7 +81,7 @@ jobs:
               server_name books.takeyaproject.it.com;
 
               location /api/ {
-                  proxy_pass http://localhost:8081/api/;
+                  proxy_pass http://localhost:8080/api/;
                   proxy_http_version 1.1;
                   proxy_set_header Host $host;
                   proxy_set_header X-Real-IP $remote_addr;
@@ -105,7 +90,7 @@ jobs:
               }
 
               location /health {
-                  proxy_pass http://localhost:8081/health;
+                  proxy_pass http://localhost:8080/health;
               }
 
               location / {
@@ -122,6 +107,7 @@ jobs:
           ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "
             sudo cp /tmp/booktracker.nginx /etc/nginx/sites-available/booktracker &&
             sudo ln -sf /etc/nginx/sites-available/booktracker /etc/nginx/sites-enabled/booktracker &&
+            sudo rm -f /etc/nginx/sites-enabled/default &&
             sudo nginx -t &&
             sudo systemctl reload nginx
           "
