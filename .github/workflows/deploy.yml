@@ -27,6 +27,7 @@ jobs:
         run: |
           cd backend
           CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o server-linux .
+          ls -lh server-linux
 
       - name: Build frontend
         run: |
@@ -52,11 +53,11 @@ jobs:
 
       - name: Deploy backend
         run: |
-          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p /home/ubuntu/backend"
-          scp backend/server-linux ubuntu@${{ secrets.LIGHTSAIL_IP }}:/home/ubuntu/backend/server-linux
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p /home/ubuntu/backend && sudo systemctl stop backend"
+          scp -O backend/server-linux ubuntu@${{ secrets.LIGHTSAIL_IP }}:/home/ubuntu/backend/server-linux
           ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "
             chmod +x /home/ubuntu/backend/server-linux &&
-            sudo systemctl restart backend
+            sudo systemctl start backend
           "
 
       - name: Set backend environment variables
