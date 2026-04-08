@@ -52,10 +52,10 @@ jobs:
 
       - name: Deploy backend
         run: |
-          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p ~/backend"
-          scp backend/server-linux ubuntu@${{ secrets.LIGHTSAIL_IP }}:~/backend/server-linux
+          ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "mkdir -p /home/ubuntu/backend"
+          scp backend/server-linux ubuntu@${{ secrets.LIGHTSAIL_IP }}:/home/ubuntu/backend/server-linux
           ssh ubuntu@${{ secrets.LIGHTSAIL_IP }} "
-            chmod +x ~/backend/server-linux &&
+            chmod +x /home/ubuntu/backend/server-linux &&
             sudo systemctl restart backend
           "
 
