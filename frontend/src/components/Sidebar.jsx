@@ -16,7 +16,7 @@ export default function Sidebar() {
         onClick={() => setOpen(true)}
         aria-label="Open navigation menu"
         aria-expanded={open}
-        className="lg:hidden fixed top-4 left-4 z-40 p-2 bg-indigo-600 text-white rounded-lg shadow-md"
+        className="lg:hidden fixed top-4 left-4 z-40 p-2 bg-rose-600 text-white rounded-lg shadow-md"
       >
         <Menu className="w-5 h-5" aria-hidden="true" />
       </button>
@@ -31,7 +31,7 @@ export default function Sidebar() {
           'lg:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         )}
-        style={{ background: 'linear-gradient(180deg, #1e1b4b 0%, #3730a3 60%, #4f46e5 100%)' }}
+        style={{ background: 'linear-gradient(180deg, #4c0519 0%, #9f1239 60%, #e11d48 100%)' }}
       >
         {/* Logo */}
         <div className="flex items-center justify-between px-6 py-6 border-b border-white/10">
@@ -58,7 +58,7 @@ export default function Sidebar() {
                 cn(
                   'flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all',
                   isActive
-                    ? 'bg-white text-indigo-700 shadow-md'
+                    ? 'bg-white text-rose-700 shadow-md'
                     : 'text-white/75 hover:text-white hover:bg-white/15'
                 )
               }

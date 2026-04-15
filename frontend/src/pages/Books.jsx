@@ -24,7 +24,7 @@ const STATUS_BADGE = {
 
 const EMPTY_FORM = { title: '', author: '', genre: '', coverUrl: '', status: 'want_to_read', rating: '', notes: '', finishedDate: '' }
 
-const inputCls = 'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/50 bg-white'
+const inputCls = 'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500/50 bg-white'
 
 export default function Books() {
   const navigate = useNavigate()
@@ -130,7 +130,7 @@ export default function Books() {
           </button>
           <button
             onClick={openAdd}
-            className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors"
+            className="flex items-center gap-2 bg-rose-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-rose-700 transition-colors"
           >
             <Plus className="w-4 h-4" />
             Add Book
@@ -164,7 +164,7 @@ export default function Books() {
           placeholder="Search by title or author..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 bg-white"
+          className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/30 bg-white"
         />
       </div>
 
@@ -248,7 +248,7 @@ export default function Books() {
             <button type="button" onClick={closeForm} className="flex-1 px-4 py-2.5 border border-slate-200 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
               Cancel
             </button>
-            <button type="submit" disabled={isSaving} className="flex-1 px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50">
+            <button type="submit" disabled={isSaving} className="flex-1 px-4 py-2.5 bg-rose-600 text-white rounded-lg text-sm font-medium hover:bg-rose-700 transition-colors disabled:opacity-50">
               {isSaving ? 'Saving…' : editing ? 'Save Changes' : 'Add Book'}
             </button>
           </div>
@@ -298,13 +298,13 @@ function BookCard({ book, onEdit, onDelete }) {
       {book.coverUrl ? (
         <img src={book.coverUrl} alt={book.title} className="w-full h-40 object-cover rounded-t-xl" />
       ) : (
-        <div className="w-full h-40 bg-indigo-50 rounded-t-xl flex items-center justify-center">
-          <BookOpen className="w-10 h-10 text-indigo-200" />
+        <div className="w-full h-40 bg-rose-50 rounded-t-xl flex items-center justify-center">
+          <BookOpen className="w-10 h-10 text-rose-200" />
         </div>
       )}
       <CardContent className="flex-1 flex flex-col pt-4 pb-4">
         <div className="flex items-start justify-between gap-2 mb-1">
-          <Link to={`/books/${book.id}`} className="font-semibold text-slate-900 hover:text-indigo-600 leading-snug line-clamp-2 transition-colors">
+          <Link to={`/books/${book.id}`} className="font-semibold text-slate-900 hover:text-rose-600 leading-snug line-clamp-2 transition-colors">
             {book.title}
           </Link>
           <Badge variant={status.variant} className="shrink-0">{status.label}</Badge>

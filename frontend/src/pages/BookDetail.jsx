@@ -12,7 +12,7 @@ const STATUS_BADGE = {
   finished: { label: 'Finished', variant: 'success' },
 }
 
-const inputCls = 'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500/50 bg-white'
+const inputCls = 'w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500/50 bg-white'
 
 function Field({ label, required, children }) {
   return (
@@ -92,7 +92,7 @@ export default function BookDetail() {
     return (
       <div className="max-w-2xl mx-auto px-4 py-10 text-center">
         <p className="text-slate-500">Book not found.</p>
-        <Link to="/" className="text-indigo-600 text-sm mt-2 inline-block hover:underline">
+        <Link to="/" className="text-rose-600 text-sm mt-2 inline-block hover:underline">
           Back to books
         </Link>
       </div>
@@ -105,7 +105,7 @@ export default function BookDetail() {
     <div className="max-w-2xl mx-auto px-4 py-10">
 
       {/* Back */}
-      <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-indigo-600 transition-colors mb-6">
+      <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-rose-600 transition-colors mb-6">
         <ArrowLeft className="w-4 h-4" />
         All books
       </Link>
@@ -116,8 +116,8 @@ export default function BookDetail() {
         {book.coverUrl ? (
           <img src={book.coverUrl} alt={book.title} className="w-full h-48 object-cover" />
         ) : (
-          <div className="w-full h-48 bg-indigo-50 flex items-center justify-center">
-            <BookOpen className="w-14 h-14 text-indigo-200" />
+          <div className="w-full h-48 bg-rose-50 flex items-center justify-center">
+            <BookOpen className="w-14 h-14 text-rose-200" />
           </div>
         )}
 
@@ -126,7 +126,7 @@ export default function BookDetail() {
             <h1 className="text-2xl font-bold text-slate-900 leading-tight">{book.title}</h1>
             <div className="flex gap-1 flex-shrink-0">
               <button onClick={openEdit} aria-label="Edit book"
-                className="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-slate-100 rounded-lg transition-colors">
+                className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-slate-100 rounded-lg transition-colors">
                 <Pencil className="w-4 h-4" />
               </button>
               <button onClick={() => setDeleteOpen(true)} aria-label="Delete book"
@@ -219,7 +219,7 @@ export default function BookDetail() {
                 Cancel
               </button>
               <button type="submit" disabled={updateMutation.isPending}
-                className="flex-1 px-4 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors disabled:opacity-50">
+                className="flex-1 px-4 py-2.5 bg-rose-600 text-white rounded-lg text-sm font-medium hover:bg-rose-700 transition-colors disabled:opacity-50">
                 {updateMutation.isPending ? 'Saving…' : 'Save Changes'}
               </button>
             </div>

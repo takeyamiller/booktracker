@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 
 const variants = {
-  default: 'bg-indigo-100 text-indigo-700',
+  default: 'bg-rose-100 text-rose-700',
   secondary: 'bg-slate-100 text-slate-700',
   success: 'bg-green-100 text-green-700',
   warning: 'bg-amber-100 text-amber-700',
