@@ -11,8 +11,8 @@ import (
 	"strings"
 	"time"
 
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang-jwt/jwt/v5"
-	_ "modernc.org/sqlite"
 )
 
 var conn *sql.DB
@@ -31,13 +31,13 @@ type BookResponse struct {
 }
 
 func main() {
-	dbPath := os.Getenv("DATABASE_PATH")
-	if dbPath == "" {
-		dbPath = "./booktracker.db"
+	dsn := os.Getenv("MYSQL_DSN")
+	if dsn == "" {
+		dsn = "root:@tcp(localhost:3306)/booktracker"
 	}
 
 	var err error
-	conn, err = sql.Open("sqlite", dbPath)
+	conn, err = sql.Open("mysql", dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -46,18 +46,18 @@ func main() {
 	if err = conn.Ping(); err != nil {
 		log.Fatal("Cannot connect to database:", err)
 	}
-	log.Println("Connected to SQLite")
+	log.Println("Connected to MySQL")
 
 	_, err = conn.Exec(`CREATE TABLE IF NOT EXISTS books (
-		id            INTEGER PRIMARY KEY AUTOINCREMENT,
-		title         TEXT NOT NULL,
-		author        TEXT NOT NULL,
-		genre         TEXT,
+		id            INT PRIMARY KEY AUTO_INCREMENT,
+		title         VARCHAR(255) NOT NULL,
+		author        VARCHAR(255) NOT NULL,
+		genre         VARCHAR(100),
 		cover_url     TEXT,
-		status        TEXT NOT NULL DEFAULT 'want_to_read',
-		rating        INTEGER,
+		status        VARCHAR(20) NOT NULL DEFAULT 'want_to_read',
+		rating        INT,
 		notes         TEXT,
-		finished_date TEXT
+		finished_date VARCHAR(20)
 	)`)
 	if err != nil {
 		log.Fatal("Failed to create books table:", err)

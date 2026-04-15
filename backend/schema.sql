@@ -1,11 +1,11 @@
 CREATE TABLE IF NOT EXISTS books (
-    id            INTEGER PRIMARY KEY AUTOINCREMENT,
-    title         TEXT NOT NULL,
-    author        TEXT NOT NULL,
-    genre         TEXT,
+    id            INT PRIMARY KEY AUTO_INCREMENT,
+    title         VARCHAR(255) NOT NULL,
+    author        VARCHAR(255) NOT NULL,
+    genre         VARCHAR(100),
     cover_url     TEXT,
-    status        TEXT NOT NULL DEFAULT 'want_to_read',
-    rating        INTEGER,
+    status        VARCHAR(20) NOT NULL DEFAULT 'want_to_read',
+    rating        INT,
     notes         TEXT,
-    finished_date TEXT
+    finished_date VARCHAR(20)
 );
